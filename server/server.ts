@@ -1,12 +1,26 @@
-import express, { Request, Response } from "express";
+import dotenv from "dotenv";
 
-const app = express();
+import { app } from ".";
+import connectDB from "./mongodb/connect";
 
-app.get("/", (req: Request, res: Response) => {
-  res.json("success");
-});
+dotenv.config();
 
 const port = process.env.PORT || 3000;
-const server = app.listen(port, () => {
-  console.log(`App is running on port ${port}`);
-});
+const DB = process.env.MONGODB_URL?.replace(
+  "<password>",
+  process.env.PASSWORD!
+);
+
+const startServer = async () => {
+  try {
+    connectDB(DB!);
+
+    app.listen(port, () => {
+      console.log(`App is running on port ${port}`);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export default startServer;
