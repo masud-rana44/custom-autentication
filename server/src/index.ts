@@ -6,7 +6,8 @@ import compression from "compression";
 import cors from "cors";
 import * as dotenv from "dotenv";
 
-import mongoose from "mongoose";
+import authRouter from "./routers/authRouters.ts";
+import connectDB from "./db/connect.ts";
 
 dotenv.config();
 
@@ -26,10 +27,10 @@ server.listen(PORT, () => {
 });
 
 const MONGODB_URL = process.env.MONGODB_URL;
+connectDB(MONGODB_URL);
 
-mongoose.Promise = Promise;
-mongoose.connect(MONGODB_URL);
-mongoose.connection.on("connected", () => {
-  console.log("mongodb connected");
+app.get("/", (req, res) => {
+  return res.send("success");
 });
-mongoose.connection.on("error", (err: Error) => console.log(err));
+
+app.use("/api/v1/auth", authRouter);

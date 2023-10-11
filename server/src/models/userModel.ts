@@ -7,14 +7,14 @@ const userSchema = new mongoose.Schema({
     trim: true,
   },
   email: {
-    type: true,
+    type: String,
     required: [true, "Email is required"],
     lowercase: true,
     unique: true,
     trim: true,
     // TODO: email validation
   },
-  photo: {
+  photoUrl: {
     type: String,
     default: "default.jpg",
   },
@@ -45,4 +45,5 @@ const userSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model("User", userSchema);
+
 export default User;
