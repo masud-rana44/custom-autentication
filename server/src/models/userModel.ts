@@ -1,7 +1,24 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Model } from "mongoose";
 import bcrypt from "bcrypt";
 
-const userSchema = new mongoose.Schema({
+interface IUser extends Document {
+  name: string;
+  email: string;
+  photoUrl: string;
+  password: string;
+  passwordConfirm: string;
+  passwordChangedAt: Date | undefined;
+  passwordResetToken: string | undefined;
+  passwordResetExpires: Date | undefined;
+  active: boolean;
+
+  correctPassword(
+    candidatePassword: string,
+    userPassword: string
+  ): Promise<boolean>;
+}
+
+const userSchema = new mongoose.Schema<IUser>({
   name: {
     type: String,
     required: [true, "Name is required"],
@@ -45,19 +62,26 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// middlewares
+// Middlewares
 userSchema.pre("save", async function (next) {
   // return, if password not modified
   if (!this.isModified("password")) return next();
 
-  // hash the password
+  // hash the password & delete passwordConfirm field
   this.password = await bcrypt.hash(this.password, 10);
 
-  // delete password confirm field
   this.passwordConfirm = undefined;
   next();
 });
 
-const User = mongoose.model("User", userSchema);
+// Instance methods
+userSchema.methods.correctPassword = async function (
+  candidatePassword: string,
+  userPassword: string
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+const User: Model<IUser> = mongoose.model("User", userSchema);
 
 export default User;
