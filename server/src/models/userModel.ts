@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -42,6 +43,19 @@ const userSchema = new mongoose.Schema({
     default: true,
     select: false,
   },
+});
+
+// middlewares
+userSchema.pre("save", async function (next) {
+  // return, if password not modified
+  if (!this.isModified("password")) return next();
+
+  // hash the password
+  this.password = await bcrypt.hash(this.password, 10);
+
+  // delete password confirm field
+  this.passwordConfirm = undefined;
+  next();
 });
 
 const User = mongoose.model("User", userSchema);

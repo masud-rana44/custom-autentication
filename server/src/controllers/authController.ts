@@ -1,4 +1,5 @@
-import express from "express";
+import express, { CookieOptions } from "express";
+import jwt from "jsonwebtoken";
 
 import User from "../models/userModel.ts";
 
@@ -20,7 +21,7 @@ export const register = async (req: express.Request, res: express.Response) => {
     }
 
     // create new user
-    const user = await User.create({
+    const newUser = await User.create({
       name,
       email,
       photoUrl,
@@ -30,7 +31,35 @@ export const register = async (req: express.Request, res: express.Response) => {
 
     // TODO: send verification emil
 
-    return res.status(200).json(user).end();
+    // create jwt token
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
+
+    // set cookie options
+    const cookieOptions: CookieOptions = {
+      expires: new Date(
+        Date.now() +
+          Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000
+      ),
+      httpOnly: true,
+    };
+    if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
+
+    // set the cookie to the response
+    res.cookie("jwt", token, cookieOptions);
+
+    // remove password and active fields from the output
+    newUser.password = undefined;
+    newUser.active = undefined;
+
+    return res.status(201).json({
+      status: "success",
+      token,
+      data: {
+        user: newUser,
+      },
+    });
   } catch (error) {
     console.log("[REGISTER]", error);
     return res.status(500).json("Internal Server Error");
