@@ -1,5 +1,8 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
+<main>
     <section className="bg-primary-600 text-white py-16">
       <div className="container mx-auto text-center">
         <h1 className="text-4xl font-extrabold">Welcome to Our Authentication App</h1>
@@ -9,5 +12,6 @@ export default function Home() {
         </button>
       </div>
     </section>
+    </main>
   );
 }
